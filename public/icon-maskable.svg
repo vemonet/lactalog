@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <linearGradient id="bgm" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#5cb3e6"/>
+      <stop offset="1" stop-color="#bfe9f7"/>
+    </linearGradient>
+    <clipPath id="bodyClipM"><rect x="180" y="170" width="152" height="262" rx="34"/></clipPath>
+  </defs>
+  <rect width="512" height="512" fill="url(#bgm)"/>
+  <!-- bottle scaled into the maskable safe zone -->
+  <g transform="translate(256 256) scale(0.78) translate(-256 -256)">
+   <g transform="rotate(120 256 256)">
+    <path d="M244 60 q12 -12 24 0 q7 7 7 22 l4 24 h-46 l4 -24 q0 -15 7 -22 z" fill="#ffe0a3"/>
+    <rect x="204" y="104" width="104" height="34" rx="11" fill="#ffcf7a"/>
+    <rect x="212" y="132" width="88" height="46" rx="8" fill="#eaf7fd" stroke="#2f7fb0" stroke-width="10"/>
+    <rect x="180" y="170" width="152" height="262" rx="34" fill="#ffffff"/>
+    <rect x="180" y="300" width="152" height="132" fill="#9ad3ef" clip-path="url(#bodyClipM)"/>
+    <rect x="180" y="170" width="152" height="262" rx="34" fill="none" stroke="#2f7fb0" stroke-width="12"/>
+    <g stroke="#2f7fb0" stroke-width="8" stroke-linecap="round">
+      <line x1="202" y1="238" x2="230" y2="238"/>
+      <line x1="202" y1="272" x2="230" y2="272"/>
+    </g>
+   </g>
+  </g>
+</svg>

@@ -1,0 +1,56 @@
+{
+  "name": "lactalog",
+  "description": "Track baby feeding and pumped milk, backed by a Google Sheet",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "prepare": "husky",
+    "version": "npm run build && auto-changelog -p -o CHANGELOG.md && git add CHANGELOG.md",
+    "postversion": "git tag v$(npm pkg get version --no-workspaces | tr -d \\\") && git push origin v$(npm pkg get version --no-workspaces | tr -d \\\")"
+  },
+  "dependencies": {
+    "@kobalte/core": "^0.13.7",
+    "chart.js": "^4.4.7",
+    "solid-js": "^1.9.5"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.39.4",
+    "@types/node": "^26.0.1",
+    "auto-changelog": "^2.6.0",
+    "eslint": "^9.39.4",
+    "eslint-plugin-solid": "^0.14.5",
+    "globals": "^17.7.0",
+    "husky": "^9.1.7",
+    "prettier": "^3.9.4",
+    "typescript": "^5.7.3",
+    "typescript-eslint": "^8.62.1",
+    "vite": "^6.0.7",
+    "vite-plugin-pwa": "^0.21.1",
+    "vite-plugin-solid": "^2.11.0"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "prettier": {
+    "trailingComma": "es5",
+    "singleQuote": true,
+    "tabWidth": 2,
+    "useTabs": false,
+    "printWidth": 120
+  },
+  "lint-staged": {
+    "*.{js,jsx,ts,tsx,json,css,md,mdx,html,yml}": [
+      "prettier --write",
+      "eslint --fix"
+    ]
+  }
+}
