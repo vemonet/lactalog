@@ -9,8 +9,6 @@ export interface Settings {
   feedingSheet: string;
   milkingSheet: string;
   sleepingSheet: string;
-  typeArtificial: string;
-  typeMother: string;
   birthDate: string; // YYYY-MM-DD
   birthWeightKg: number;
   feedsPerDay: number;
@@ -21,8 +19,6 @@ const DEFAULTS: Settings = {
   feedingSheet: 'Feeding',
   milkingSheet: 'Milking',
   sleepingSheet: 'Sleeping',
-  typeArtificial: '🐮 Artificial',
-  typeMother: '🍼 Mommy',
   birthDate: '',
   birthWeightKg: 3.4,
   feedsPerDay: 0, // 0 = auto (derived from age)

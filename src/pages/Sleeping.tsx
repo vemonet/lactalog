@@ -86,7 +86,7 @@ export function Sleeping() {
             <>
               <h3>Track sleep</h3>
               <button class="btn" type="button" onClick={startNap}>
-                😴 Start sleep
+                😴 Start sleeping
               </button>
               <button
                 type="button"
@@ -108,9 +108,14 @@ export function Sleeping() {
                   Started at {nap().time}
                 </div>
               </div>
-              <button class="btn" type="button" style={{ width: 'auto' }} onClick={wakeUp} disabled={saving()}>
-                {saving() ? 'Saving...' : 'Wake up'}
-              </button>
+              <div class="reminder-actions">
+                <button class="btn" type="button" style={{ width: 'auto' }} onClick={wakeUp} disabled={saving()}>
+                  {saving() ? 'Saving...' : 'Wake up'}
+                </button>
+                <button class="btn ghost small" type="button" onClick={clearNap} disabled={saving()}>
+                  Cancel
+                </button>
+              </div>
             </div>
           )}
         </Show>

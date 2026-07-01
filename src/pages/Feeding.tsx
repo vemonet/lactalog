@@ -14,6 +14,8 @@ const COW = '#f5a623';
 const MOM = '#5cb3e6';
 const BLUE = '#5cb3e6';
 const BLUE_LIGHT = '#a7ddf3';
+const TYPE_MOTHER = '🤱 Mommy';
+const TYPE_ARTIFICIAL = '🐮 Artificial';
 
 export function Feeding() {
   const expected = createMemo(() => computeExpected(settings.birthDate, settings.birthWeightKg, settings.feedsPerDay));
@@ -23,7 +25,7 @@ export function Feeding() {
   // Prefill the bottle size with the age-based recommendation (initial value only).
   // eslint-disable-next-line solid/reactivity
   const [qty, setQty] = createSignal(expected()?.perFeedMl ?? 60);
-  const [type, setType] = createSignal(settings.typeMother);
+  const [type, setType] = createSignal(TYPE_MOTHER);
   const [saving, setSaving] = createSignal(false);
   const [msg, setMsg] = createSignal<{ kind: 'ok' | 'error'; text: string } | null>(null);
 
@@ -77,8 +79,8 @@ export function Feeding() {
     let cow = 0;
     let mom = 0;
     for (const e of feeding()) {
-      if (e.type === settings.typeArtificial) cow += e.qty;
-      else if (e.type === settings.typeMother) mom += e.qty;
+      if (e.type === TYPE_ARTIFICIAL) cow += e.qty;
+      else if (e.type === TYPE_MOTHER) mom += e.qty;
       else mom += e.qty; // default unknown labels to mother's bucket
     }
     const total = mom + cow;
@@ -119,9 +121,9 @@ export function Feeding() {
 
       {/* ---- Add entry ---- */}
       <form class="card" onSubmit={submit}>
-        <h3>Add a feed</h3>
+        <h3>Add feeding session</h3>
         <Show when={msg()}>{(m) => <div class={`banner ${m().kind}`}>{m().text}</div>}</Show>
-        <div class="row">
+        <div class="row row-inline">
           <div class="field">
             <label>Date</label>
             <DateInput value={date()} onChange={setDate} />
@@ -141,23 +143,23 @@ export function Feeding() {
             <button
               type="button"
               class="chip"
-              aria-pressed={type() === settings.typeMother}
-              onClick={() => setType(settings.typeMother)}
+              aria-pressed={type() === TYPE_MOTHER}
+              onClick={() => setType(TYPE_MOTHER)}
             >
-              {settings.typeMother}
+              {TYPE_MOTHER}
             </button>
             <button
               type="button"
               class="chip"
-              aria-pressed={type() === settings.typeArtificial}
-              onClick={() => setType(settings.typeArtificial)}
+              aria-pressed={type() === TYPE_ARTIFICIAL}
+              onClick={() => setType(TYPE_ARTIFICIAL)}
             >
-              {settings.typeArtificial}
+              {TYPE_ARTIFICIAL}
             </button>
           </div>
         </div>
         <button class="btn" type="submit" disabled={saving()}>
-          {saving() ? 'Saving...' : 'Add feed'}
+          {saving() ? 'Saving...' : '🍼 Add feeding'}
         </button>
       </form>
 
@@ -231,7 +233,7 @@ export function Feeding() {
             config={{
               type: 'doughnut',
               data: {
-                labels: [settings.typeMother, settings.typeArtificial],
+                labels: [TYPE_MOTHER, TYPE_ARTIFICIAL],
                 datasets: [{ data: [split().mom, split().cow], backgroundColor: [MOM, COW], borderWidth: 0 }],
               },
               options: {
@@ -256,13 +258,13 @@ export function Feeding() {
           <div class="legend">
             <div class="legend-item">
               <span class="dot" style={{ background: MOM }} />
-              {settings.typeMother}
+              {TYPE_MOTHER}
               <span class="spacer" />
               <b>{split().momPct}%</b> <span class="muted">({split().mom} mL)</span>
             </div>
             <div class="legend-item">
               <span class="dot" style={{ background: COW }} />
-              {settings.typeArtificial}
+              {TYPE_ARTIFICIAL}
               <span class="spacer" />
               <b>{split().cowPct}%</b> <span class="muted">({split().cow} mL)</span>
             </div>

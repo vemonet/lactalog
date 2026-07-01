@@ -8,8 +8,6 @@ export function SettingsForm(props: { onSaved?: () => void; showAdvanced?: boole
   const [birthDate, setBirthDate] = createSignal(settings.birthDate);
   const [birthWeight, setBirthWeight] = createSignal(String(settings.birthWeightKg));
   const [feedsPerDay, setFeedsPerDay] = createSignal(String(settings.feedsPerDay));
-  const [typeMother, setTypeMother] = createSignal(settings.typeMother);
-  const [typeArtificial, setTypeArtificial] = createSignal(settings.typeArtificial);
   const [feedingSheet, setFeedingSheet] = createSignal(settings.feedingSheet);
   const [milkingSheet, setMilkingSheet] = createSignal(settings.milkingSheet);
   const [sleepingSheet, setSleepingSheet] = createSignal(settings.sleepingSheet);
@@ -24,8 +22,6 @@ export function SettingsForm(props: { onSaved?: () => void; showAdvanced?: boole
       birthDate: birthDate(),
       birthWeightKg: parseFloat(birthWeight()) || 3.4,
       feedsPerDay: Math.max(0, parseInt(feedsPerDay(), 10) || 0),
-      typeMother: typeMother().trim() || '🍼 Mommy',
-      typeArtificial: typeArtificial().trim() || '🐮 Artificial',
       feedingSheet: feedingSheet().trim() || 'Feeding',
       milkingSheet: milkingSheet().trim() || 'Milking',
       sleepingSheet: sleepingSheet().trim() || 'Sleeping',
@@ -76,16 +72,6 @@ export function SettingsForm(props: { onSaved?: () => void; showAdvanced?: boole
       </div>
 
       <Show when={adv()}>
-        <div class="row">
-          <div class="field">
-            <label>Mother's milk label</label>
-            <input class="input" value={typeMother()} onInput={(e) => setTypeMother(e.currentTarget.value)} />
-          </div>
-          <div class="field">
-            <label>Artificial label</label>
-            <input class="input" value={typeArtificial()} onInput={(e) => setTypeArtificial(e.currentTarget.value)} />
-          </div>
-        </div>
         <div class="row">
           <div class="field">
             <label>Feeds per day (0 = auto by age)</label>

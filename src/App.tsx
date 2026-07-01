@@ -71,10 +71,10 @@ export function App() {
               🍼 Feeding
             </Tabs.Trigger>
             <Tabs.Trigger class="tabs__trigger" value="milking">
-              💧 Milking
+              🥛 Milking
             </Tabs.Trigger>
             <Tabs.Trigger class="tabs__trigger" value="sleeping">
-              😴 Sleep
+              ⏾ Sleeping
             </Tabs.Trigger>
           </Tabs.List>
           <div style={{ 'margin-top': '14px' }}>

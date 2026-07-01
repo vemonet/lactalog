@@ -42,9 +42,9 @@ export function Milking() {
   return (
     <div class="grid">
       <form class="card" onSubmit={submit}>
-        <h3>Add a pumping session</h3>
+        <h3>Add pumping session</h3>
         <Show when={msg()}>{(m) => <div class={`banner ${m().kind}`}>{m().text}</div>}</Show>
-        <div class="row">
+        <div class="row row-inline">
           <div class="field">
             <label>Date</label>
             <DateInput value={date()} onChange={setDate} />
@@ -59,7 +59,7 @@ export function Milking() {
           <QtyInput value={qty()} onChange={setQty} />
         </div>
         <button class="btn" type="submit" disabled={saving()}>
-          {saving() ? 'Saving...' : 'Add session'}
+          {saving() ? 'Saving...' : '⛽️ Add pumping'}
         </button>
       </form>
 
