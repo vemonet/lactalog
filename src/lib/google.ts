@@ -1,8 +1,9 @@
 // Google Identity Services (GIS) token-client wrapper. Gives the static app a
 // short-lived OAuth access token (no client secret, PKCE-style) to call the
 // Sheets API. The token is cached in localStorage so a page reload reuses it
-// until it expires; when expired we try a SILENT refresh (prompt: "none") and
-// only fall back to an interactive popup if that fails.
+// until it expires. While a tab stays open, we also proactively refresh the
+// token in the background a bit before it expires (silent, no popup) so an
+// open session effectively never re-prompts for sign-in.
 import { createSignal } from 'solid-js';
 
 interface TokenResponse {
@@ -38,6 +39,8 @@ declare global {
 const SCOPE = 'https://www.googleapis.com/auth/spreadsheets';
 const GIS_SRC = 'https://accounts.google.com/gsi/client';
 const TOKEN_KEY = 'lactalog.token';
+// How long before expiry to proactively (and silently) refresh the token.
+const REFRESH_MARGIN_MS = 5 * 60_000;
 
 let gisReady: Promise<void> | null = null;
 let tokenClient: TokenClient | null = null;
@@ -54,10 +57,29 @@ let currentReject: ((e: Error) => void) | null = null;
 const [authed, setAuthed] = createSignal(false);
 export { authed };
 
+// Schedules a silent background refresh shortly before the token expires.
+// setToken() calls this again on every successful refresh, so as long as the
+// tab stays open and silent refresh keeps working, this chains indefinitely
+// and the user never sees a re-login prompt.
 function scheduleExpiry() {
   clearTimeout(expiryTimer);
-  const ms = expiresAt - Date.now();
-  if (ms > 0) expiryTimer = setTimeout(() => setAuthed(false), ms);
+  const ms = expiresAt - Date.now() - REFRESH_MARGIN_MS;
+  if (ms > 0) expiryTimer = setTimeout(backgroundRefresh, ms);
+}
+
+async function backgroundRefresh(): Promise<void> {
+  if (!clientIdUsed) return;
+  try {
+    await requestToken(clientIdUsed, false);
+    // Success: setToken() -> scheduleExpiry() already queued the next refresh.
+  } catch {
+    // Silent refresh failed (signed out of Google, revoked access, third-party
+    // cookies blocked, etc.) — fall back to flipping the UI to "signed out"
+    // right when the token actually expires; isSignedIn() already reflects
+    // this, but `authed` needs an explicit update since nothing else ticks it.
+    const ms = expiresAt - Date.now();
+    expiryTimer = setTimeout(() => setAuthed(false), Math.max(0, ms));
+  }
 }
 
 function setToken(token: string, expiresInSec: number) {
@@ -134,17 +156,10 @@ export function isSignedIn(): boolean {
   return accessToken !== '' && Date.now() < expiresAt - 30_000;
 }
 
-/**
- * Resolve an access token.
- * - Valid cached token -> returned immediately (no network, no popup).
- * - interactive=false -> attempt a SILENT refresh (no UI); rejects if a prompt
- *   would be required (caller can then fall back or ask the user to sign in).
- * - interactive=true  -> show the Google popup if needed.
- */
-export async function getAccessToken(clientId: string, interactive: boolean): Promise<string> {
-  if (!clientId) throw new Error('Missing OAuth Client ID (set it in src/lib/storage.ts)');
-  if (isSignedIn()) return accessToken;
-
+// Always issues a fresh request to Google (no cached-token shortcut); used
+// both by getAccessToken and by the proactive background refresh, which must
+// bypass the cache since the cached token is still valid when it fires.
+async function requestToken(clientId: string, interactive: boolean): Promise<string> {
   await loadGis();
   const client = getClient(clientId);
   return new Promise<string>((resolve, reject) => {
@@ -157,6 +172,19 @@ export async function getAccessToken(clientId: string, interactive: boolean): Pr
       reject(e as Error);
     }
   });
+}
+
+/**
+ * Resolve an access token.
+ * - Valid cached token -> returned immediately (no network, no popup).
+ * - interactive=false -> attempt a SILENT refresh (no UI); rejects if a prompt
+ *   would be required (caller can then fall back or ask the user to sign in).
+ * - interactive=true  -> show the Google popup if needed.
+ */
+export async function getAccessToken(clientId: string, interactive: boolean): Promise<string> {
+  if (!clientId) throw new Error('Missing OAuth Client ID (set it in src/lib/storage.ts)');
+  if (isSignedIn()) return accessToken;
+  return requestToken(clientId, interactive);
 }
 
 export function signOut(): void {

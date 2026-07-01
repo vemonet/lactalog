@@ -1,22 +1,40 @@
-import { createMemo, createSignal, For, Show } from 'solid-js';
+import { createEffect, createMemo, createSignal, For, onCleanup, Show } from 'solid-js';
 import { ChartView } from '../components/Chart';
 import { Stat } from '../components/Stat';
 import { QtyInput } from '../components/QtyInput';
 import { DateInput } from '../components/DateInput';
 import { milking, refresh } from '../lib/data';
 import { addMilking } from '../lib/sheets';
-import { avgDaily, countPerDaySeries, onDate, perDaySeries, timeOfDayBuckets, totalQty } from '../lib/stats';
+import {
+  avgDaily,
+  bestDayTotal,
+  countPerDaySeries,
+  maxEntry,
+  onDate,
+  perDaySeries,
+  timeOfDayBuckets,
+  totalQty,
+} from '../lib/stats';
 import { fmtDateEU, nowHHMM, round, todayISO } from '../lib/util';
 
 export function Milking() {
   const [date, setDate] = createSignal(todayISO());
   const [time, setTime] = createSignal(nowHHMM());
+  const [timeTouched, setTimeTouched] = createSignal(false);
   const [qty, setQty] = createSignal(100);
   const [saving, setSaving] = createSignal(false);
   const [msg, setMsg] = createSignal<{ kind: 'ok' | 'error'; text: string } | null>(null);
 
   const today = todayISO();
   const todays = createMemo(() => onDate(milking(), today));
+
+  // Ticking clock so the prefilled time stays live if the form is left open.
+  const [now, setNow] = createSignal(Date.now());
+  const timer = setInterval(() => setNow(Date.now()), 30_000);
+  onCleanup(() => clearInterval(timer));
+  createEffect(() => {
+    if (!timeTouched()) setTime(nowHHMM(new Date(now())));
+  });
 
   async function submit(e: Event) {
     e.preventDefault();
@@ -27,6 +45,7 @@ export function Milking() {
       await addMilking({ date: date(), time: time(), qty: qty() });
       setMsg({ kind: 'ok', text: `Saved ${qty()} mL.` });
       setTime(nowHHMM());
+      setTimeTouched(false);
       await refresh();
     } catch (err) {
       setMsg({ kind: 'error', text: err instanceof Error ? err.message : String(err) });
@@ -51,7 +70,15 @@ export function Milking() {
           </div>
           <div class="field">
             <label>Time</label>
-            <input class="input" type="time" value={time()} onInput={(e) => setTime(e.currentTarget.value)} />
+            <input
+              class="input"
+              type="time"
+              value={time()}
+              onInput={(e) => {
+                setTime(e.currentTarget.value);
+                setTimeTouched(true);
+              }}
+            />
           </div>
         </div>
         <div class="field">
@@ -67,6 +94,12 @@ export function Milking() {
         <Stat value={`${totalQty(todays())} mL`} label="Today total" />
         <Stat value={todays().length} label="Sessions today" />
         <Stat value={`${round(avgDaily(milking(), 7))} mL`} label="Avg / day" sub="last 7 days" />
+      </div>
+
+      <div class="section-title">Records</div>
+      <div class="grid cols-2">
+        <Stat value={`${maxEntry(milking())?.qty ?? 0} mL`} label="Biggest pump" />
+        <Stat value={`${bestDayTotal(milking())} mL`} label="Best day" />
       </div>
 
       <div class="section-title">Volume per day (14d)</div>

@@ -1,25 +1,43 @@
-import { createMemo, createSignal, For, onCleanup, Show } from 'solid-js';
+import { createEffect, createMemo, createSignal, For, onCleanup, Show } from 'solid-js';
 import { ChartView } from '../components/Chart';
 import { Stat } from '../components/Stat';
 import { DateInput } from '../components/DateInput';
 import { sleeping, refresh } from '../lib/data';
 import { addSleeping } from '../lib/sheets';
 import { activeNap, clearNap, startNap } from '../lib/nap';
-import { avgDaily, countPerDaySeries, onDate, perDaySeries, timeOfDayBuckets, totalQty } from '../lib/stats';
+import {
+  avgDaily,
+  countPerDaySeries,
+  longestGapMinutes,
+  maxEntry,
+  onDate,
+  perDaySeries,
+  timeOfDayBuckets,
+  totalQty,
+} from '../lib/stats';
 import { fmtDateEU, fmtDuration, minutesBetween, nowHHMM, todayISO } from '../lib/util';
 
 export function Sleeping() {
   const [date, setDate] = createSignal(todayISO());
   const [start, setStart] = createSignal(nowHHMM());
+  const [startTouched, setStartTouched] = createSignal(false);
   const [end, setEnd] = createSignal(nowHHMM());
+  const [endTouched, setEndTouched] = createSignal(false);
   const [manual, setManual] = createSignal(false);
   const [saving, setSaving] = createSignal(false);
   const [msg, setMsg] = createSignal<{ kind: 'ok' | 'error'; text: string } | null>(null);
 
-  // Ticking clock so the "currently sleeping" elapsed time stays live.
+  // Ticking clock so the "currently sleeping" elapsed time, and the prefilled
+  // start/end fields, stay live.
   const [now, setNow] = createSignal(Date.now());
   const timer = setInterval(() => setNow(Date.now()), 30_000);
   onCleanup(() => clearInterval(timer));
+  createEffect(() => {
+    if (!startTouched()) setStart(nowHHMM(new Date(now())));
+  });
+  createEffect(() => {
+    if (!endTouched()) setEnd(nowHHMM(new Date(now())));
+  });
 
   const duration = createMemo(() => minutesBetween(date(), start(), end()));
   const elapsed = createMemo(() => {
@@ -67,7 +85,9 @@ export function Sleeping() {
     const ok = await save({ date: date(), time: start(), endTime: end(), qty: duration() });
     if (ok) {
       setStart(nowHHMM());
+      setStartTouched(false);
       setEnd(nowHHMM());
+      setEndTouched(false);
     }
   }
 
@@ -131,11 +151,27 @@ export function Sleeping() {
           <div class="row">
             <div class="field">
               <label>Start</label>
-              <input class="input" type="time" value={start()} onInput={(e) => setStart(e.currentTarget.value)} />
+              <input
+                class="input"
+                type="time"
+                value={start()}
+                onInput={(e) => {
+                  setStart(e.currentTarget.value);
+                  setStartTouched(true);
+                }}
+              />
             </div>
             <div class="field">
               <label>End</label>
-              <input class="input" type="time" value={end()} onInput={(e) => setEnd(e.currentTarget.value)} />
+              <input
+                class="input"
+                type="time"
+                value={end()}
+                onInput={(e) => {
+                  setEnd(e.currentTarget.value);
+                  setEndTouched(true);
+                }}
+              />
             </div>
           </div>
           <div class="muted" style={{ 'font-size': '13px', 'margin-bottom': '12px' }}>
@@ -151,6 +187,12 @@ export function Sleeping() {
         <Stat value={fmtDuration(totalQty(todays()))} label="Today total" />
         <Stat value={todays().length} label="Naps today" />
         <Stat value={fmtDuration(avgDaily(sleeping(), 7))} label="Avg / day" sub="last 7 days" />
+      </div>
+
+      <div class="section-title">Records</div>
+      <div class="grid cols-2">
+        <Stat value={fmtDuration(maxEntry(sleeping())?.qty ?? 0)} label="Longest sleep" />
+        <Stat value={fmtDuration(longestGapMinutes(sleeping()))} label="Longest awake gap" />
       </div>
 
       <div class="section-title">Sleep per day (14d)</div>

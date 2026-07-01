@@ -1,4 +1,4 @@
-import { fmtDateShort, lastNDates, sum } from './util';
+import { fmtDateShort, lastNDates, parseDateTime, sum } from './util';
 
 interface Entry {
   date: string;
@@ -51,4 +51,30 @@ export function avgDaily(entries: Entry[], n: number): number {
   const active = values.filter((v) => v > 0);
   if (active.length === 0) return 0;
   return sum(active) / active.length;
+}
+
+// The single biggest entry on record (e.g. biggest feed, longest sleep).
+export function maxEntry<T extends Entry>(entries: T[]): T | null {
+  if (!entries.length) return null;
+  return entries.reduce((best, e) => (e.qty > best.qty ? e : best));
+}
+
+// All-time best single day (sum of qty), unlike perDaySeries which is windowed.
+export function bestDayTotal(entries: Entry[]): number {
+  const map = new Map<string, number>();
+  for (const e of entries) map.set(e.date, (map.get(e.date) ?? 0) + e.qty);
+  return map.size ? Math.max(...map.values()) : 0;
+}
+
+// Longest gap between consecutive entries, in minutes.
+export function longestGapMinutes(entries: Entry[]): number {
+  if (entries.length < 2) return 0;
+  const sorted = [...entries].sort((a, b) => (a.date + a.time).localeCompare(b.date + b.time));
+  let max = 0;
+  for (let i = 1; i < sorted.length; i++) {
+    const prev = parseDateTime(sorted[i - 1].date, sorted[i - 1].time).getTime();
+    const cur = parseDateTime(sorted[i].date, sorted[i].time).getTime();
+    max = Math.max(max, (cur - prev) / 60000);
+  }
+  return max;
 }

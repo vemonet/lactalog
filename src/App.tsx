@@ -52,8 +52,8 @@ export function App() {
               </button>
             </Show>
           </Show>
-          <button class={`icon-btn ${loading() ? 'spin' : ''}`} title="Refresh" onClick={() => refresh()}>
-            ⟳
+          <button class="icon-btn" title="Refresh" onClick={() => refresh()}>
+            <span class={loading() ? 'spin' : ''}>⟳</span>
           </button>
           <SettingsDialog open={settingsOpen()} onOpenChange={setSettingsOpen} />
         </header>
@@ -74,7 +74,7 @@ export function App() {
               🥛 Milking
             </Tabs.Trigger>
             <Tabs.Trigger class="tabs__trigger" value="sleeping">
-              ⏾ Sleeping
+              🛌 Sleeping
             </Tabs.Trigger>
           </Tabs.List>
           <div style={{ 'margin-top': '14px' }}>

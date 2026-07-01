@@ -91,7 +91,8 @@ body {
 .icon-btn:hover {
   filter: brightness(0.85);
 }
-.icon-btn.spin {
+.icon-btn .spin {
+  display: inline-block;
   animation: spin 0.8s linear infinite;
 }
 @keyframes spin {

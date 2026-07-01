@@ -1,4 +1,4 @@
-import { createMemo, createSignal, For, onCleanup, Show } from 'solid-js';
+import { createEffect, createMemo, createSignal, For, onCleanup, Show } from 'solid-js';
 import { ChartView } from '../components/Chart';
 import { Stat } from '../components/Stat';
 import { QtyInput } from '../components/QtyInput';
@@ -7,14 +7,14 @@ import { feeding, refresh } from '../lib/data';
 import { addFeeding } from '../lib/sheets';
 import { settings } from '../lib/storage';
 import { computeExpected } from '../lib/expected';
-import { avgDaily, onDate, perDaySeries, timeOfDayBuckets, totalQty } from '../lib/stats';
+import { avgDaily, longestGapMinutes, maxEntry, onDate, perDaySeries, timeOfDayBuckets, totalQty } from '../lib/stats';
 import { fmtDateEU, humanDuration, nowHHMM, parseDateTime, pad2, round, todayISO } from '../lib/util';
 
 const COW = '#f5a623';
 const MOM = '#5cb3e6';
 const BLUE = '#5cb3e6';
 const BLUE_LIGHT = '#a7ddf3';
-const TYPE_MOTHER = '🤱 Mommy';
+const TYPE_MOTHER = '🤱🏻 Mommy';
 const TYPE_ARTIFICIAL = '🐮 Artificial';
 
 export function Feeding() {
@@ -22,6 +22,7 @@ export function Feeding() {
 
   const [date, setDate] = createSignal(todayISO());
   const [time, setTime] = createSignal(nowHHMM());
+  const [timeTouched, setTimeTouched] = createSignal(false);
   // Prefill the bottle size with the age-based recommendation (initial value only).
   // eslint-disable-next-line solid/reactivity
   const [qty, setQty] = createSignal(expected()?.perFeedMl ?? 60);
@@ -29,10 +30,13 @@ export function Feeding() {
   const [saving, setSaving] = createSignal(false);
   const [msg, setMsg] = createSignal<{ kind: 'ok' | 'error'; text: string } | null>(null);
 
-  // Ticking clock so the "next feed" section stays live.
+  // Ticking clock so the "next feed" section and the prefilled time stay live.
   const [now, setNow] = createSignal(Date.now());
   const timer = setInterval(() => setNow(Date.now()), 30_000);
   onCleanup(() => clearInterval(timer));
+  createEffect(() => {
+    if (!timeTouched()) setTime(nowHHMM(new Date(now())));
+  });
 
   const today = todayISO();
   const todays = createMemo(() => onDate(feeding(), today));
@@ -65,6 +69,7 @@ export function Feeding() {
       await addFeeding({ date: date(), time: time(), qty: qty(), type: type() });
       setMsg({ kind: 'ok', text: `Saved ${qty()} mL.` });
       setTime(nowHHMM());
+      setTimeTouched(false);
       await refresh();
     } catch (err) {
       setMsg({ kind: 'error', text: err instanceof Error ? err.message : String(err) });
@@ -108,7 +113,7 @@ export function Feeding() {
                   </div>
                 }
               >
-                <div class="reminder-title">Time for a feed{r().dueIn < -1800000 ? ' (overdue)' : ''}</div>
+                <div class="reminder-title">Miam time{r().dueIn < -1800000 ? ' (overdue)' : ''}</div>
               </Show>
               <div class="muted" style={{ 'font-size': '13px' }}>
                 Last feed {humanDuration(r().sinceLast)} ago
@@ -130,7 +135,15 @@ export function Feeding() {
           </div>
           <div class="field">
             <label>Time</label>
-            <input class="input" type="time" value={time()} onInput={(e) => setTime(e.currentTarget.value)} />
+            <input
+              class="input"
+              type="time"
+              value={time()}
+              onInput={(e) => {
+                setTime(e.currentTarget.value);
+                setTimeTouched(true);
+              }}
+            />
           </div>
         </div>
         <div class="field">
@@ -204,6 +217,13 @@ export function Feeding() {
         <Stat value={`${todayTotal()} mL`} label="Today total" />
         <Stat value={todays().length} label="Feeds today" />
         <Stat value={`${round(avgDaily(feeding(), 7))} mL`} label="Avg / day" sub="last 7 days" />
+      </div>
+
+      {/* ---- Records ---- */}
+      <div class="section-title">Records</div>
+      <div class="grid cols-2">
+        <Stat value={`${maxEntry(feeding())?.qty ?? 0} mL`} label="Biggest feed" />
+        <Stat value={humanDuration(longestGapMinutes(feeding()) * 60_000)} label="Longest gap" />
       </div>
 
       <div class="section-title">Volume per day (14d)</div>
