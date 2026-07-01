@@ -3,6 +3,7 @@ import { Tabs } from '@kobalte/core/tabs';
 import { Dialog } from '@kobalte/core/dialog';
 import { Feeding } from './pages/Feeding';
 import { Milking } from './pages/Milking';
+import { Sleeping } from './pages/Sleeping';
 import { SettingsForm } from './components/SettingsForm';
 import { error, loading, refresh } from './lib/data';
 import { effectiveClientId, hasClientId, isConfigured, spreadsheetId } from './lib/storage';
@@ -72,6 +73,9 @@ export function App() {
             <Tabs.Trigger class="tabs__trigger" value="milking">
               💧 Milking
             </Tabs.Trigger>
+            <Tabs.Trigger class="tabs__trigger" value="sleeping">
+              😴 Sleep
+            </Tabs.Trigger>
           </Tabs.List>
           <div style={{ 'margin-top': '14px' }}>
             <Tabs.Content value="feeding">
@@ -79,6 +83,9 @@ export function App() {
             </Tabs.Content>
             <Tabs.Content value="milking">
               <Milking />
+            </Tabs.Content>
+            <Tabs.Content value="sleeping">
+              <Sleeping />
             </Tabs.Content>
           </div>
         </Tabs>

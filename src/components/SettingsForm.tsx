@@ -12,6 +12,7 @@ export function SettingsForm(props: { onSaved?: () => void; showAdvanced?: boole
   const [typeArtificial, setTypeArtificial] = createSignal(settings.typeArtificial);
   const [feedingSheet, setFeedingSheet] = createSignal(settings.feedingSheet);
   const [milkingSheet, setMilkingSheet] = createSignal(settings.milkingSheet);
+  const [sleepingSheet, setSleepingSheet] = createSignal(settings.sleepingSheet);
   // eslint-disable-next-line solid/reactivity -- initial value only
   const [adv, setAdv] = createSignal(props.showAdvanced ?? false);
   const [err, setErr] = createSignal('');
@@ -27,6 +28,7 @@ export function SettingsForm(props: { onSaved?: () => void; showAdvanced?: boole
       typeArtificial: typeArtificial().trim() || '🐮 Artificial',
       feedingSheet: feedingSheet().trim() || 'Feeding',
       milkingSheet: milkingSheet().trim() || 'Milking',
+      sleepingSheet: sleepingSheet().trim() || 'Sleeping',
     });
     if (!spreadsheetId()) {
       setErr("That doesn't look like a valid Google Sheets URL.");
@@ -104,6 +106,12 @@ export function SettingsForm(props: { onSaved?: () => void; showAdvanced?: boole
           <div class="field">
             <label>Milking sheet name</label>
             <input class="input" value={milkingSheet()} onInput={(e) => setMilkingSheet(e.currentTarget.value)} />
+          </div>
+        </div>
+        <div class="row">
+          <div class="field">
+            <label>Sleeping sheet name</label>
+            <input class="input" value={sleepingSheet()} onInput={(e) => setSleepingSheet(e.currentTarget.value)} />
           </div>
         </div>
       </Show>

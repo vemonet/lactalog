@@ -64,6 +64,26 @@ export function humanDuration(ms: number): string {
   return `${h}h ${m}m`;
 }
 
+// Minutes from start to end time on the same date. If end < start, treat it as
+// crossing midnight (add 24h) so overnight sleep sessions compute correctly.
+// Equal start/end is 0 minutes, not a full day.
+export function minutesBetween(dateISO: string, startHHMM: string, endHHMM: string): number {
+  const start = parseDateTime(dateISO, startHHMM).getTime();
+  let end = parseDateTime(dateISO, endHHMM).getTime();
+  if (end < start) end += 24 * 3_600_000;
+  return Math.round((end - start) / 60000);
+}
+
+// "1h 30m", "45m", "0m" for a duration given in minutes.
+export function fmtDuration(mins: number): string {
+  const m = Math.max(0, Math.round(mins));
+  const h = Math.floor(m / 60);
+  const r = m % 60;
+  if (h === 0) return `${r}m`;
+  if (r === 0) return `${h}h`;
+  return `${h}h ${r}m`;
+}
+
 export function round(n: number, digits = 0): number {
   const f = Math.pow(10, digits);
   return Math.round(n * f) / f;

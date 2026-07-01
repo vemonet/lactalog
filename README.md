@@ -1,16 +1,19 @@
 # 🍼 LactaLog
 
-A static, installable PWA (SolidJS + Kobalte) to track **baby feeding** and **pumped milk**, using a **Google Sheet as the database**.
+A static, installable progressive web app to track **baby feeding** and **pumped milk**, using a **Google Docs Sheet as the database**, built with SolidJS and Kobalte.
 
 - **Reading** (dashboards/charts): a **private** sheet is read through the Sheets API once you sign in with a Google account that can access it. A sheet shared "Anyone with the link" is read via the public CSV endpoint with no sign-in.
 - **Writing** (adding entries) uses a **"Sign in with Google" button**, because Google has no public write API: even a publicly-editable sheet can only be written through an authenticated call. The deployer creates **one** OAuth Client ID (public by design, no secret) and bakes it into the build via `VITE_GOOGLE_CLIENT_ID`. End users never see it, they just click sign in.
 
 ## The spreadsheet
 
-Two sheets, with these columns (labels are not checked, only the order):
+Three sheets, with these columns (labels are not checked, only the order):
 
 - **Feeding**: `Date` · `Time` · `Quantity (mL)` · `Milk type`
 - **Milking**: `Date` · `Time` · `Quantity (mL)`
+- **Sleeping**: `Date` · `Start` · `End` · `Duration (min)`
+
+Missing tabs are created automatically (with a header row) the first time you add an entry to them.
 
 Sharing options:
 
@@ -21,6 +24,7 @@ Sharing options:
 
 - Add a feed (time prefilled to now, mL stepper, mother's milk / artificial)
 - Add a pumping session
+- Add a sleep session (start/end time, duration computed automatically)
 - Dashboards: today totals, per-day volume, source split, time-of-day distribution, recent log
 - **Expected intake** by age/weight: total mL/day, an age-based number of feeds, and the
   resulting per-bottle amount (the form prefills with it). Feeds/day auto-decreases with age
