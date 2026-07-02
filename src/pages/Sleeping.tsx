@@ -190,7 +190,7 @@ export function Sleeping() {
       </div>
 
       <div class="section-title">Records</div>
-      <div class="grid cols-2">
+      <div class="grid records">
         <Stat value={fmtDuration(maxEntry(sleeping())?.qty ?? 0)} label="Longest sleep" />
         <Stat value={fmtDuration(longestGapMinutes(sleeping()))} label="Longest awake gap" />
       </div>

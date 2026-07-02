@@ -2,12 +2,8 @@ import { defineConfig } from 'vite';
 import solid from 'vite-plugin-solid';
 import { VitePWA } from 'vite-plugin-pwa';
 
-// GitHub Pages serves this project site under /lactalog/. Override with the
-// BASE_PATH env var if you deploy the repo under a different name.
-const base = process.env.BASE_PATH ?? '/lactalog/';
-
 export default defineConfig({
-  base,
+  base: process.env.BASE_PATH ?? '/lactalog/',
   preview: { port: 5173 },
   plugins: [
     solid(),

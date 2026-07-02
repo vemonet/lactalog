@@ -91,9 +91,12 @@ body {
 .icon-btn:hover {
   filter: brightness(0.85);
 }
+.icon-btn svg {
+  display: block;
+}
 .icon-btn .spin {
-  display: inline-block;
   animation: spin 0.8s linear infinite;
+  transform-origin: center;
 }
 @keyframes spin {
   to {
@@ -169,15 +172,8 @@ body {
   border-color: rgba(76, 175, 114, 0.5);
 }
 .chip-btn .gmark {
-  display: grid;
-  place-items: center;
-  width: 20px;
-  height: 20px;
-  border-radius: 50%;
-  background: white;
-  color: #4285f4;
-  font-weight: 800;
-  font-size: 13px;
+  display: block;
+  flex: 0 0 auto;
 }
 
 /* Cards & grid */
@@ -200,6 +196,13 @@ body {
   .grid.cols-2 {
     grid-template-columns: 1fr;
   }
+}
+/* Records are short stats; keep them on one line even on small screens,
+   regardless of how many there are (2 or 3). */
+.grid.records {
+  grid-template-columns: none;
+  grid-auto-flow: column;
+  grid-auto-columns: 1fr;
 }
 
 .card {
@@ -289,6 +292,10 @@ body {
   border: 1px solid var(--border);
   border-radius: 12px;
   cursor: pointer;
+  /* Prevent iOS double-tap-to-zoom when tapping +/- rapidly. */
+  touch-action: manipulation;
+  user-select: none;
+  -webkit-user-select: none;
 }
 .step-btn:hover {
   filter: brightness(0.85);

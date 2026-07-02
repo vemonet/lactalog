@@ -31,7 +31,7 @@ Sharing options:
   (override in Settings). Rough guideline, not medical advice.
 - **"Time for a feed?"** section: live countdown to the next feed from the last logged one
   using the age-based interval, with an alert when it's due
-- Offline-capable, installable to the home screen
+- Smartphone friendly, installable to the home screen like a native app
 
 ## Development
 

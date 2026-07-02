@@ -22,6 +22,7 @@ export function Milking() {
   const [time, setTime] = createSignal(nowHHMM());
   const [timeTouched, setTimeTouched] = createSignal(false);
   const [qty, setQty] = createSignal(100);
+  const [qtyTouched, setQtyTouched] = createSignal(false);
   const [saving, setSaving] = createSignal(false);
   const [msg, setMsg] = createSignal<{ kind: 'ok' | 'error'; text: string } | null>(null);
 
@@ -35,6 +36,11 @@ export function Milking() {
   createEffect(() => {
     if (!timeTouched()) setTime(nowHHMM(new Date(now())));
   });
+  // Once data loads, prefill with the last recorded pump quantity (until the user edits it).
+  createEffect(() => {
+    const last = milking()[0]; // sorted newest first
+    if (!qtyTouched() && last) setQty(last.qty);
+  });
 
   async function submit(e: Event) {
     e.preventDefault();
@@ -46,6 +52,7 @@ export function Milking() {
       setMsg({ kind: 'ok', text: `Saved ${qty()} mL.` });
       setTime(nowHHMM());
       setTimeTouched(false);
+      setQtyTouched(false);
       await refresh();
     } catch (err) {
       setMsg({ kind: 'error', text: err instanceof Error ? err.message : String(err) });
@@ -83,7 +90,13 @@ export function Milking() {
         </div>
         <div class="field">
           <label>Quantity (mL)</label>
-          <QtyInput value={qty()} onChange={setQty} />
+          <QtyInput
+            value={qty()}
+            onChange={(v) => {
+              setQty(v);
+              setQtyTouched(true);
+            }}
+          />
         </div>
         <button class="btn" type="submit" disabled={saving()}>
           {saving() ? 'Saving...' : '⛽️ Add pumping'}
@@ -97,7 +110,7 @@ export function Milking() {
       </div>
 
       <div class="section-title">Records</div>
-      <div class="grid cols-2">
+      <div class="grid records">
         <Stat value={`${maxEntry(milking())?.qty ?? 0} mL`} label="Biggest pump" />
         <Stat value={`${bestDayTotal(milking())} mL`} label="Best day" />
       </div>

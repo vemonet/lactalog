@@ -7,7 +7,16 @@ import { feeding, refresh } from '../lib/data';
 import { addFeeding } from '../lib/sheets';
 import { settings } from '../lib/storage';
 import { computeExpected } from '../lib/expected';
-import { avgDaily, longestGapMinutes, maxEntry, onDate, perDaySeries, timeOfDayBuckets, totalQty } from '../lib/stats';
+import {
+  avgDaily,
+  bestDayTotal,
+  longestGapMinutes,
+  maxEntry,
+  onDate,
+  perDaySeries,
+  timeOfDayBuckets,
+  totalQty,
+} from '../lib/stats';
 import { fmtDateEU, humanDuration, nowHHMM, parseDateTime, pad2, round, todayISO } from '../lib/util';
 
 const COW = '#f5a623';
@@ -26,6 +35,12 @@ export function Feeding() {
   // Prefill the bottle size with the age-based recommendation (initial value only).
   // eslint-disable-next-line solid/reactivity
   const [qty, setQty] = createSignal(expected()?.perFeedMl ?? 60);
+  const [qtyTouched, setQtyTouched] = createSignal(false);
+  // Once data loads, prefill with the last recorded feed quantity (until the user edits it).
+  createEffect(() => {
+    const last = feeding()[0]; // sorted newest first
+    if (!qtyTouched() && last) setQty(last.qty);
+  });
   const [type, setType] = createSignal(TYPE_MOTHER);
   const [saving, setSaving] = createSignal(false);
   const [msg, setMsg] = createSignal<{ kind: 'ok' | 'error'; text: string } | null>(null);
@@ -70,6 +85,7 @@ export function Feeding() {
       setMsg({ kind: 'ok', text: `Saved ${qty()} mL.` });
       setTime(nowHHMM());
       setTimeTouched(false);
+      setQtyTouched(false);
       await refresh();
     } catch (err) {
       setMsg({ kind: 'error', text: err instanceof Error ? err.message : String(err) });
@@ -148,7 +164,13 @@ export function Feeding() {
         </div>
         <div class="field">
           <label>Quantity (mL)</label>
-          <QtyInput value={qty()} onChange={setQty} />
+          <QtyInput
+            value={qty()}
+            onChange={(v) => {
+              setQty(v);
+              setQtyTouched(true);
+            }}
+          />
         </div>
         <div class="field">
           <label>Type of milk</label>
@@ -221,8 +243,9 @@ export function Feeding() {
 
       {/* ---- Records ---- */}
       <div class="section-title">Records</div>
-      <div class="grid cols-2">
+      <div class="grid records">
         <Stat value={`${maxEntry(feeding())?.qty ?? 0} mL`} label="Biggest feed" />
+        <Stat value={`${bestDayTotal(feeding())} mL`} label="Biggest day" />
         <Stat value={humanDuration(longestGapMinutes(feeding()) * 60_000)} label="Longest gap" />
       </div>
 

@@ -27,12 +27,23 @@ export function ChartView(props: { config: ChartConfiguration; height?: number }
   });
 
   // Re-render on data/config change (cheap full update for our small datasets).
+  // The constructor already animates the first paint; skip that initial effect
+  // run and update without animation afterwards, so background refreshes don't
+  // replay the grow animation.
+  let firstRun = true;
   createEffect(() => {
     const cfg = props.config;
+    // Touch reactive fields so the effect re-runs when the data changes.
+    void cfg.data;
+    void cfg.options;
     if (!chart) return;
+    if (firstRun) {
+      firstRun = false;
+      return;
+    }
     chart.data = cfg.data;
     if (cfg.options) chart.options = cfg.options;
-    chart.update();
+    chart.update('none');
   });
 
   onCleanup(() => chart?.destroy());
