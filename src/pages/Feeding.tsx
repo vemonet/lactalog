@@ -18,6 +18,7 @@ import {
   totalQty,
 } from '../lib/stats';
 import { fmtDateEU, humanDuration, nowHHMM, parseDateTime, pad2, round, todayISO } from '../lib/util';
+import { notificationsActive, showNotify } from '../lib/notify';
 
 const COW = '#f5a623';
 const MOM = '#5cb3e6';
@@ -73,6 +74,25 @@ export function Feeding() {
       nextHHMM: `${pad2(new Date(nextMs).getHours())}:${pad2(new Date(nextMs).getMinutes())}`,
       perFeed: expected()?.perFeedMl,
     };
+  });
+
+  // Fire a "miam time" notification when the next feed becomes due while the app
+  // is open. Notify once per feed cycle, keyed by the most recent feed.
+  let miamNotifiedKey = '';
+  createEffect(() => {
+    const r = reminder();
+    if (!r || !notificationsActive()) return;
+    const last = feeding()[0];
+    const key = last ? `${last.date} ${last.time}` : '';
+    if (r.due && key && key !== miamNotifiedKey) {
+      miamNotifiedKey = key;
+      void showNotify('🍼 Miam time!', {
+        body: r.perFeed ? `Time to feed · suggested ~${r.perFeed} mL` : 'Time to feed',
+        tag: 'miam',
+        icon: `${import.meta.env.BASE_URL}icon.svg`,
+        renotify: true,
+      });
+    }
   });
 
   async function submit(e: Event) {

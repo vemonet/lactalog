@@ -24,6 +24,8 @@ export default defineConfig({
         ],
       },
       workbox: {
+        // Layer our own notificationclick handler onto the generated SW.
+        importScripts: ['sw-custom.js'],
         navigateFallbackDenylist: [/^\/api/],
         runtimeCaching: [
           {

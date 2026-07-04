@@ -65,7 +65,7 @@ export function App() {
               }
             >
               <button class="chip-btn signed" title="Signed in · click to sign out" onClick={signOut}>
-                ✓ <span class="chip-label">Signed in</span>
+                <GoogleIcon /> <span class="chip-label">Signed in</span>
               </button>
             </Show>
           </Show>

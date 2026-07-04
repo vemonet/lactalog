@@ -2,6 +2,13 @@ import { createSignal, Show } from 'solid-js';
 import { saveSettings, settings, spreadsheetId } from '../lib/storage';
 import { refresh } from '../lib/data';
 import { DateInput } from './DateInput';
+import {
+  enableNotifications,
+  notificationsSupported,
+  notifyEnabled,
+  notifyPermission,
+  setNotifyEnabled,
+} from '../lib/notify';
 
 export function SettingsForm(props: { onSaved?: () => void; showAdvanced?: boolean }) {
   const [url, setUrl] = createSignal(settings.spreadsheetUrl);
@@ -101,6 +108,42 @@ export function SettingsForm(props: { onSaved?: () => void; showAdvanced?: boole
           </div>
         </div>
       </Show>
+
+      <div class="field">
+        <label>Reminders</label>
+        <Show
+          when={notificationsSupported()}
+          fallback={
+            <span class="muted" style={{ 'font-size': '12px' }}>
+              On iPhone, add LactaLog to your Home Screen first to enable notifications (iOS 16.4+).
+            </span>
+          }
+        >
+          <Show
+            when={notifyEnabled() && notifyPermission() === 'granted'}
+            fallback={
+              <>
+                <button type="button" class="btn secondary" onClick={() => void enableNotifications()}>
+                  🔔 Enable reminders
+                </button>
+                <Show when={notifyPermission() === 'denied'}>
+                  <span class="muted" style={{ 'font-size': '12px' }}>
+                    Notifications are blocked in your browser settings for this site.
+                  </span>
+                </Show>
+              </>
+            }
+          >
+            <button type="button" class="btn ghost" onClick={() => setNotifyEnabled(false)}>
+              🔕 Disable reminders
+            </button>
+            <span class="muted" style={{ 'font-size': '12px' }}>
+              Feed ("miam time") and sleep alerts fire while the app is open. Closed-app alerts aren't possible without
+              a server.
+            </span>
+          </Show>
+        </Show>
+      </div>
 
       <div class="row" style={{ 'margin-top': '8px' }}>
         <Show when={!props.showAdvanced}>

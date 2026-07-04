@@ -1,4 +1,4 @@
-import { createEffect, createMemo, createSignal, For, onCleanup, Show } from 'solid-js';
+import { createEffect, createMemo, createSignal, For, onCleanup, onMount, Show } from 'solid-js';
 import { ChartView } from '../components/Chart';
 import { Stat } from '../components/Stat';
 import { DateInput } from '../components/DateInput';
@@ -16,6 +16,7 @@ import {
   totalQty,
 } from '../lib/stats';
 import { fmtDateEU, fmtDuration, minutesBetween, nowHHMM, todayISO } from '../lib/util';
+import { closeNotify, notificationsActive, showNotify } from '../lib/notify';
 
 export function Sleeping() {
   const [date, setDate] = createSignal(todayISO());
@@ -78,6 +79,40 @@ export function Sleeping() {
     });
     if (ok) clearNap();
   }
+
+  // Keep an ongoing notification (with a "Wake up" action button on Android)
+  // while a nap is in progress; close it once the baby wakes up.
+  createEffect(() => {
+    const nap = activeNap();
+    if (nap && notificationsActive()) {
+      void showNotify('😴 Baby is sleeping', {
+        body: `Started at ${nap.time}`,
+        tag: 'nap',
+        icon: `${import.meta.env.BASE_URL}icon.svg`,
+        requireInteraction: true,
+        silent: true,
+        actions: [{ action: 'wake-up', title: 'Wake up' }],
+      });
+    } else {
+      void closeNotify('nap');
+    }
+  });
+
+  onMount(() => {
+    // Cold start from the notification's "Wake up" action (no tab was open).
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('action') === 'wake-up') {
+      void wakeUp();
+      window.history.replaceState({}, '', window.location.pathname);
+    }
+    // A "Wake up" tap relayed from the service worker to this open tab.
+    const onMsg = (e: MessageEvent) => {
+      const d = e.data as { type?: string; action?: string } | null;
+      if (d?.type === 'notification-click' && d.action === 'wake-up') void wakeUp();
+    };
+    navigator.serviceWorker?.addEventListener('message', onMsg);
+    onCleanup(() => navigator.serviceWorker?.removeEventListener('message', onMsg));
+  });
 
   async function submit(e: Event) {
     e.preventDefault();

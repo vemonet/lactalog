@@ -21,5 +21,10 @@ export default defineConfig(
   {
     files: ['*.config.{js,ts}'],
     languageOptions: { globals: { ...globals.node } },
+  },
+  // Service-worker scripts served from public/.
+  {
+    files: ['public/*.js'],
+    languageOptions: { globals: { ...globals.serviceworker, ...globals.browser } },
   }
 );
