@@ -53,6 +53,14 @@ export function avgDaily(entries: Entry[], n: number): number {
   return sum(active) / active.length;
 }
 
+// Average daily feed count over the last n days that actually have data.
+export function avgDailyFeedCount(entries: Entry[], n: number): number {
+  const { values } = countPerDaySeries(entries, n);
+  const active = values.filter((v) => v > 0);
+  if (active.length === 0) return 0;
+  return sum(active) / active.length;
+}
+
 // The single biggest entry on record (e.g. biggest feed, longest sleep).
 export function maxEntry<T extends Entry>(entries: T[]): T | null {
   if (!entries.length) return null;

@@ -5,6 +5,8 @@ import { QtyInput } from '../components/QtyInput';
 import { DateInput } from '../components/DateInput';
 import { milking, refresh } from '../lib/data';
 import { addMilking } from '../lib/sheets';
+import { confetti } from '../lib/confetti';
+import { milkingBeatsRecord } from '../lib/records';
 import {
   avgDaily,
   bestDayTotal,
@@ -47,13 +49,16 @@ export function Milking() {
     if (qty() <= 0) return;
     setSaving(true);
     setMsg(null);
+    const entry = { date: date(), time: time(), qty: qty() };
+    const beats = milkingBeatsRecord(milking(), entry);
     try {
-      await addMilking({ date: date(), time: time(), qty: qty() });
+      await addMilking(entry);
       setMsg({ kind: 'ok', text: `Saved ${qty()} mL.` });
       setTime(nowHHMM());
       setTimeTouched(false);
       setQtyTouched(false);
       await refresh();
+      if (beats) confetti();
     } catch (err) {
       setMsg({ kind: 'error', text: err instanceof Error ? err.message : String(err) });
     } finally {

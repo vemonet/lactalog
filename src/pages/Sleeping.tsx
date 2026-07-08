@@ -4,6 +4,8 @@ import { Stat } from '../components/Stat';
 import { DateInput } from '../components/DateInput';
 import { sleeping, refresh } from '../lib/data';
 import { addSleeping } from '../lib/sheets';
+import { confetti } from '../lib/confetti';
+import { sleepingBeatsRecord } from '../lib/records';
 import { activeNap, clearNap, startNap } from '../lib/nap';
 import {
   avgDaily,
@@ -54,10 +56,12 @@ export function Sleeping() {
   async function save(entry: { date: string; time: string; endTime: string; qty: number }): Promise<boolean> {
     setSaving(true);
     setMsg(null);
+    const beats = sleepingBeatsRecord(sleeping(), entry);
     try {
       await addSleeping(entry);
       setMsg({ kind: 'ok', text: `Saved ${fmtDuration(entry.qty)} of sleep.` });
       await refresh();
+      if (beats) confetti();
       return true;
     } catch (err) {
       setMsg({ kind: 'error', text: err instanceof Error ? err.message : String(err) });

@@ -7,8 +7,11 @@ import { feeding, refresh } from '../lib/data';
 import { addFeeding } from '../lib/sheets';
 import { settings } from '../lib/storage';
 import { computeExpected } from '../lib/expected';
+import { confetti } from '../lib/confetti';
+import { feedingBeatsRecord } from '../lib/records';
 import {
   avgDaily,
+  avgDailyFeedCount,
   bestDayTotal,
   longestGapMinutes,
   maxEntry,
@@ -100,13 +103,16 @@ export function Feeding() {
     if (qty() <= 0) return;
     setSaving(true);
     setMsg(null);
+    const entry = { date: date(), time: time(), qty: qty(), type: type() };
+    const beats = feedingBeatsRecord(feeding(), entry);
     try {
-      await addFeeding({ date: date(), time: time(), qty: qty(), type: type() });
+      await addFeeding(entry);
       setMsg({ kind: 'ok', text: `Saved ${qty()} mL.` });
       setTime(nowHHMM());
       setTimeTouched(false);
       setQtyTouched(false);
       await refresh();
+      if (beats) confetti();
     } catch (err) {
       setMsg({ kind: 'error', text: err instanceof Error ? err.message : String(err) });
     } finally {
@@ -255,10 +261,25 @@ export function Feeding() {
       </Show>
 
       {/* ---- Stats ---- */}
-      <div class="grid cols-3">
-        <Stat value={`${todayTotal()} mL`} label="Today total" />
-        <Stat value={todays().length} label="Feeds today" />
-        <Stat value={`${round(avgDaily(feeding(), 7))} mL`} label="Avg / day" sub="last 7 days" />
+      <div class="grid cols-2">
+        <div class="card">
+          <h3>Volume</h3>
+          <div style={{ 'font-size': '20px', 'font-weight': 800, 'margin-bottom': '6px' }}>
+            {todayTotal()} mL / {round(avgDaily(feeding(), 7))} mL
+          </div>
+          <div class="muted" style={{ 'font-size': '12px' }}>
+            today / day avg last 7 days
+          </div>
+        </div>
+        <div class="card">
+          <h3>Feeds</h3>
+          <div style={{ 'font-size': '20px', 'font-weight': 800, 'margin-bottom': '6px' }}>
+            {todays().length} / {round(avgDailyFeedCount(feeding(), 7), 1)}
+          </div>
+          <div class="muted" style={{ 'font-size': '12px' }}>
+            today / day avg last 7 days
+          </div>
+        </div>
       </div>
 
       {/* ---- Records ---- */}
