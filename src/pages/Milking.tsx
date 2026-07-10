@@ -17,7 +17,7 @@ import {
   timeOfDayBuckets,
   totalQty,
 } from '../lib/stats';
-import { fmtDateEU, nowHHMM, round, todayISO } from '../lib/util';
+import { fmtDateEU, isFutureDateTime, nowHHMM, round, todayISO } from '../lib/util';
 
 export function Milking() {
   const [date, setDate] = createSignal(todayISO());
@@ -47,6 +47,10 @@ export function Milking() {
   async function submit(e: Event) {
     e.preventDefault();
     if (qty() <= 0) return;
+    if (isFutureDateTime(date(), time())) {
+      setMsg({ kind: 'error', text: "Can't add a session in the future. Check the date and time." });
+      return;
+    }
     setSaving(true);
     setMsg(null);
     const entry = { date: date(), time: time(), qty: qty() };

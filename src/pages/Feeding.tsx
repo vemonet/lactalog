@@ -20,7 +20,7 @@ import {
   timeOfDayBuckets,
   totalQty,
 } from '../lib/stats';
-import { fmtDateEU, humanDuration, nowHHMM, parseDateTime, pad2, round, todayISO } from '../lib/util';
+import { fmtDateEU, humanDuration, isFutureDateTime, nowHHMM, parseDateTime, pad2, round, todayISO } from '../lib/util';
 import { notificationsActive, showNotify } from '../lib/notify';
 
 const COW = '#f5a623';
@@ -101,6 +101,10 @@ export function Feeding() {
   async function submit(e: Event) {
     e.preventDefault();
     if (qty() <= 0) return;
+    if (isFutureDateTime(date(), time())) {
+      setMsg({ kind: 'error', text: "Can't add a feed in the future. Check the date and time." });
+      return;
+    }
     setSaving(true);
     setMsg(null);
     const entry = { date: date(), time: time(), qty: qty(), type: type() };

@@ -53,6 +53,14 @@ export function parseDateTime(dateISO: string, timeHHMM: string): Date {
   return new Date(`${dateISO}T${t.length === 4 ? '0' + t : t}:00`);
 }
 
+// True if the given date+time is in the future (with a small grace margin for
+// clock skew). Used to block entries that can't have happened yet.
+export function isFutureDateTime(dateISO: string, timeHHMM: string, now: Date = new Date()): boolean {
+  const dt = parseDateTime(dateISO, timeHHMM);
+  if (Number.isNaN(dt.getTime())) return false;
+  return dt.getTime() > now.getTime() + 60_000;
+}
+
 // "2h 15m", "45m", "just now" for a millisecond duration.
 export function humanDuration(ms: number): string {
   const mins = Math.round(Math.abs(ms) / 60000);

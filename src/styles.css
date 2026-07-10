@@ -265,6 +265,12 @@ body {
   padding: 12px 14px;
   font-size: 16px;
   width: 100%;
+  /* iOS gives date/time inputs a native intrinsic width that ignores
+     width:100% and overflows the flex row. Reset the appearance and let them
+     shrink so they fill the field like every other input. */
+  -webkit-appearance: none;
+  appearance: none;
+  min-width: 0;
 }
 .input:focus,
 .select:focus {
